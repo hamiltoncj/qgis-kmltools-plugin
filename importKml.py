@@ -675,7 +675,7 @@ class PlacemarkHandler(xml.sax.handler.ContentHandler, QObject):
 def coord2ptsZ(coords):
     lineStr = QgsLineString()
     coords = coords.strip()
-    clist = re.split('\s+', coords)
+    clist = re.split(r'\s+', coords)
 
     for pt in clist:
         c = pt.split(',')
