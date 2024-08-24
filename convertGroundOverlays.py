@@ -32,6 +32,7 @@ from zipfile import ZipFile
 import xml.sax
 import xml.sax.handler
 import traceback
+import re
 
 epsg4326 = QgsCoordinateReferenceSystem("EPSG:4326")
 
@@ -118,6 +119,9 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
             west = overlay[3]
             rotation = overlay[4]
             href = overlay[5]
+            groundOverlayType = overlay[6]
+            coordinates = overlay[7]
+                
             if href.startswith('http:') or href.startswith('https:'):
                 feedback.reportError('Cannot process network images: {}'.format(href))
                 continue
@@ -155,40 +159,64 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
             # Make sure the name is unique so the images are not overwritten
             file_name = self.uniqueName(file_name)
             out_path = os.path.join(out_folder, file_name+".tif")
-            if rotation == 0:
-                status = processing.run("gdal:translate", {'INPUT': raster,
-                        'EXTRA': '-a_srs EPSG:4326 -a_ullr {} {} {} {}'.format(west, north, east, south),
-                        'DATA_TYPE': 0,
-                        'OUTPUT': out_path})
-            else:
+            if groundOverlayType == "LatLonBox":
+                if rotation == 0:
+                    status = processing.run("gdal:translate", {'INPUT': raster,
+                            'EXTRA': '-a_srs EPSG:4326 -a_ullr {} {} {} {}'.format(west, north, east, south),
+                            'DATA_TYPE': 0,
+                            'OUTPUT': out_path})
+                else:
+                    rwidth = raster.width()
+                    rheight = raster.height()
+                    center_x = (east + west) / 2.0
+                    center_y = (north + south)/ 2.0
+                    center_pt = QgsPointXY(center_x, center_y)
+                    ul_pt = QgsPointXY(west, north)
+                    ur_pt = QgsPointXY(east, north)
+                    lr_pt = QgsPointXY(east, south)
+                    ll_pt = QgsPointXY(west, south)
+                    distance = center_pt.distance(ul_pt)
+                    az = center_pt.azimuth(ul_pt) - rotation
+                    pt1 = center_pt.project(distance, az)
+                    az = center_pt.azimuth(ur_pt) - rotation
+                    pt2 = center_pt.project(distance, az)
+                    az = center_pt.azimuth(lr_pt) - rotation
+                    pt3 = center_pt.project(distance, az)
+                    az = center_pt.azimuth(ll_pt) - rotation
+                    pt4 = center_pt.project(distance, az)
+                    gcp1= '-gcp {} {} {} {}'.format(0,0, pt1.x(), pt1.y())
+                    gcp2= '-gcp {} {} {} {}'.format(rwidth,0, pt2.x(), pt2.y())
+                    gcp3= '-gcp {} {} {} {}'.format(rwidth, rheight, pt3.x(), pt3.y())
+                    gcp4= '-gcp {} {} {} {}'.format(0, rheight, pt4.x(), pt4.y())
+                    status = processing.run("gdal:translate", {'INPUT': raster,
+                            'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
+                            'DATA_TYPE': 0,
+                            'OUTPUT': out_path})
+            elif groundOverlayType == "gx:LatLonQuad":
+                coor_list = re.split(r'\s+', coordinates)
+                latLonQuad = []
+                if len(coor_list) == 4:
+                    for pt in coor_list:
+                        c = pt.split(',')
+                        try:
+                            lon = float(c[0])
+                            lat = float(c[1])
+                        except Exception:
+                            c = ["0", "0"]
+                        latLonQuad.append(c)
+                else:
+                    latLonQuad = ["0", "0"] * 4
                 rwidth = raster.width()
                 rheight = raster.height()
-                center_x = (east + west) / 2.0
-                center_y = (north + south)/ 2.0
-                center_pt = QgsPointXY(center_x, center_y)
-                ul_pt = QgsPointXY(west, north)
-                ur_pt = QgsPointXY(east, north)
-                lr_pt = QgsPointXY(east, south)
-                ll_pt = QgsPointXY(west, south)
-                distance = center_pt.distance(ul_pt)
-                az = center_pt.azimuth(ul_pt) - rotation
-                pt1 = center_pt.project(distance, az)
-                az = center_pt.azimuth(ur_pt) - rotation
-                pt2 = center_pt.project(distance, az)
-                az = center_pt.azimuth(lr_pt) - rotation
-                pt3 = center_pt.project(distance, az)
-                az = center_pt.azimuth(ll_pt) - rotation
-                pt4 = center_pt.project(distance, az)
-                gcp1= '-gcp {} {} {} {}'.format(0,0, pt1.x(), pt1.y())
-                gcp2= '-gcp {} {} {} {}'.format(rwidth,0, pt2.x(), pt2.y())
-                gcp3= '-gcp {} {} {} {}'.format(rwidth, rheight, pt3.x(), pt3.y())
-                gcp4= '-gcp {} {} {} {}'.format(0, rheight, pt4.x(), pt4.y())
-                
-
+                gcp1= '-gcp {} {} {} {}'.format(0, 0, latLonQuad[3][0], latLonQuad[3][1])
+                gcp2= '-gcp {} {} {} {}'.format(rwidth, 0, latLonQuad[2][0], latLonQuad[2][1])
+                gcp3= '-gcp {} {} {} {}'.format(rwidth, rheight, latLonQuad[1][0], latLonQuad[1][1])
+                gcp4= '-gcp {} {} {} {}'.format(0, rheight, latLonQuad[0][0], latLonQuad[0][1])
                 status = processing.run("gdal:translate", {'INPUT': raster,
                         'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
                         'DATA_TYPE': 0,
                         'OUTPUT': out_path})
+
             if load_geotiffs:
                 context.addLayerToLoadOnCompletion(
                     out_path,
@@ -224,7 +252,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
         self.namelist.add(n)
         return (n)
 
-    def groundoverlay(self, north, south, east, west, rotation, href):
+    def groundoverlay(self, north, south, east, west, rotation, href, groundOverlayType, coordinates):
         # self.feedback.pushInfo('In groundoverlay')
         try:
             if north:
@@ -247,7 +275,9 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                 rotation = float(rotation)
             else:
                 rotation = 0.0
-            self.overlays.append([north, south, east, west, rotation, href])
+            if not coordinates:
+                coordinates = "0.0,0.0 0.0,0.0 0.0,0.0 0.0,0.0"
+            self.overlays.append([north, south, east, west, rotation, href, groundOverlayType, coordinates])
         except Exception:
             '''s = traceback.format_exc()
             feedback.pushInfo(s)'''
@@ -287,7 +317,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
         return ConvertGroundOverlayAlgorithm()
 
 class GroundOverlayHandler(xml.sax.handler.ContentHandler, QObject):
-    groundoverlay = pyqtSignal(str, str, str, str, str, str)
+    groundoverlay = pyqtSignal(str, str, str, str, str, str, str, str)
 
     def __init__(self, feedback):
         QObject.__init__(self)
@@ -300,6 +330,8 @@ class GroundOverlayHandler(xml.sax.handler.ContentHandler, QObject):
     def resetSettings(self):
         '''Set all settings to a default new placemark.'''
         self.inGroundOverlay = False
+        self.inGroundOverlayType = False
+        self.inCoordinates = False
         self.inNorth = False
         self.inSouth = False
         self.inEast = False
@@ -312,6 +344,8 @@ class GroundOverlayHandler(xml.sax.handler.ContentHandler, QObject):
         self.west = ""
         self.rotation = ""
         self.href = ""
+        self.groundOverlayType = ""
+        self.coordinates = ""
 
     def startElement(self, name, attr):
         if name.startswith('kml:'):
@@ -320,24 +354,34 @@ class GroundOverlayHandler(xml.sax.handler.ContentHandler, QObject):
         if name == "GroundOverlay":
             self.inGroundOverlay = True
         elif self.inGroundOverlay:
-            if name == "north":
-                self.inNorth = True
-                self.north = ""
-            elif name == "south":
-                self.inSouth = True
-                self.south = ""
-            elif name == "east":
-                self.inEast = True
-                self.east = ""
-            elif name == "west":
-                self.inWest = True
-                self.west = ""
-            elif name == "rotation":
-                self.inRotation = True
-                self.rotation = ""
-            elif name == "href":
+            if name == "href":
                 self.inHref = True
                 self.href = ""
+            if name in ("LatLonBox", "gx:LatLonQuad"):
+                self.inGroundOverlayType = True
+                self.groundOverlayType = name
+            elif self.inGroundOverlayType:
+                if name == "north":
+                    self.inNorth = True
+                    self.north = ""
+                elif name == "south":
+                    self.inSouth = True
+                    self.south = ""
+                elif name == "east":
+                    self.inEast = True
+                    self.east = ""
+                elif name == "west":
+                    self.inWest = True
+                    self.west = ""
+                elif name == "rotation":
+                    self.inRotation = True
+                    self.rotation = ""
+                elif name == "href":
+                    self.inHref = True
+                    self.href = ""
+                elif name == "coordinates":
+                    self.inCoordinates = True
+                    self.coordinates = ""
 
     def characters(self, data):
         if self.inNorth:  # on text within tag
@@ -352,30 +396,37 @@ class GroundOverlayHandler(xml.sax.handler.ContentHandler, QObject):
             self.rotation += data
         elif self.inHref:
             self.href += data
+        elif self.inCoordinates:
+            self.coordinates += data
 
     def endElement(self, name):
         if name.startswith('kml:'):
             name = name[4:]
         if self.inGroundOverlay:
-            if name == "north":
-                self.inNorth = False  # on end title tag
-                self.north = self.north.strip()
-            elif name == "south":
-                self.inSouth = False
-                self.south = self.south.strip()
-            elif name == "east":
-                self.inEast = False
-                self.east = self.east.strip()
-            elif name == "west":
-                self.inWest = False
-                self.west = self.west.strip()
-            elif name == "rotation":
-                self.inRotation = False
-                self.rotation = self.rotation.strip()
-            elif name == "href":
+            if name == "href":
                 self.inHref = False
                 self.href = self.href.strip()
+            elif self.inGroundOverlayType:          
+                if name == "north":
+                    self.inNorth = False  # on end title tag
+                    self.north = self.north.strip()
+                elif name == "south":
+                    self.inSouth = False
+                    self.south = self.south.strip()
+                elif name == "east":
+                    self.inEast = False
+                    self.east = self.east.strip()
+                elif name == "west":
+                    self.inWest = False
+                    self.west = self.west.strip()
+                elif name == "rotation":
+                    self.inRotation = False
+                    self.rotation = self.rotation.strip()
+                elif name == "coordinates":
+                    self.inCoordinates = False
+                    self.coordinates = self.coordinates.strip()
+                elif name in ("LatLonBox", "gx:LatLonQuad"):
+                    self.inGroundOverlayType = False
             elif name == 'GroundOverlay':
                 self.inGroundOverlay = False
-                self.groundoverlay.emit(self.north, self.south, self.east, self.west, self.rotation, self.href)
-
+                self.groundoverlay.emit(self.north, self.south, self.east, self.west, self.rotation, self.href, self.groundOverlayType, self.coordinates)
