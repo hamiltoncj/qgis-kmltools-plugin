@@ -16,17 +16,28 @@ from qgis.PyQt.QtGui import QIcon
 
 from qgis import processing
 
-from qgis.core import (
-    QgsCoordinateReferenceSystem, QgsPointXY, QgsRasterLayer, QgsProject,
-    QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon,
-    QgsFeature, QgsGeometry, QgsFields, QgsField, QgsWkbTypes)
+from qgis.core import (Qgis,
+                       QgsCoordinateReferenceSystem,
+                       QgsFeature,
+                       QgsField,
+                       QgsFields,
+                       QgsGeometry,
+                       QgsLineString,
+                       QgsMultiLineString,
+                       QgsMultiPolygon,
+                       QgsPointXY,
+                       QgsPolygon,
+                       QgsProject,
+                       QgsRasterLayer,
+                       QgsWkbTypes)
 
-from qgis.core import (
-    QgsProcessingAlgorithm,
-    QgsProcessingParameterFile,
-    QgsProcessingParameterBoolean,
-    QgsProcessingException,
-    QgsProcessingParameterFolderDestination)
+from qgis.core import (QgsProcessingAlgorithm,
+                       QgsProcessingException,
+                       QgsProcessingParameterBoolean,
+                       QgsProcessingParameterDefinition,
+                       QgsProcessingParameterFile,
+                       QgsProcessingParameterFolderDestination,
+                       QgsProcessingParameterString)
 
 from zipfile import ZipFile
 import xml.sax
@@ -46,6 +57,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
     PrmInput = 'Input'
     PrmGroundOverlayFolder = 'GroundOverlayFolder'
     PrmLoadGeoTiffs = 'LoadGeoTiffs'
+    PrmCreationOptions = 'CreationOptions'
 
     def initAlgorithm(self, config):
         self.addParameter(
@@ -66,6 +78,18 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                 True,
                 optional=True)
         )
+        options_param = QgsProcessingParameterString(self.PrmCreationOptions,
+                                                     tr('Additional creation options'),
+                                                     defaultValue='',
+                                                     optional=True)
+        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        if Qgis.versionInt() >= 33900:
+            options_param.setMetadata({'widget_wrapper': {'widget_type': 'rasteroptions'}})
+        else:
+            options_param.setMetadata({
+                'widget_wrapper': {
+                    'class': 'processing.algs.gdal.ui.RasterOptionsWidget.RasterOptionsWidgetWrapper'}})
+        self.addParameter(options_param)
 
     def processAlgorithm(self, parameters, context, feedback):
         self.parameters = parameters
@@ -77,6 +101,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
         f, extension = os.path.splitext(input_file)
         dirname = os.path.dirname(input_file)
         extension = extension.lower()
+        creation_options = self.parameterAsString(parameters, self.PrmCreationOptions, context)
         try:
             if extension == '.kmz':
                 kmz = ZipFile(input_file, 'r')
@@ -164,6 +189,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                     status = processing.run("gdal:translate", {'INPUT': raster,
                             'EXTRA': '-a_srs EPSG:4326 -a_ullr {} {} {} {}'.format(west, north, east, south),
                             'DATA_TYPE': 0,
+                            'OPTIONS': creation_options,
                             'OUTPUT': out_path})
                 else:
                     rwidth = raster.width()
@@ -191,6 +217,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                     status = processing.run("gdal:translate", {'INPUT': raster,
                             'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
                             'DATA_TYPE': 0,
+                            'OPTIONS': creation_options,
                             'OUTPUT': out_path})
             elif groundOverlayType == "gx:LatLonQuad":
                 coor_list = re.split(r'\s+', coordinates)
@@ -215,6 +242,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                 status = processing.run("gdal:translate", {'INPUT': raster,
                         'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
                         'DATA_TYPE': 0,
+                        'OPTIONS': creation_options,
                         'OUTPUT': out_path})
 
             if load_geotiffs:

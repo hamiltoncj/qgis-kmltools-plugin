@@ -16,17 +16,27 @@ from qgis.PyQt.QtGui import QIcon
 
 from qgis import processing
 
-from qgis.core import (
-    QgsCoordinateReferenceSystem, QgsPointXY, QgsRasterLayer, QgsProject,
-    QgsLineString, QgsMultiLineString, QgsPolygon, QgsMultiPolygon,
-    QgsFeature, QgsGeometry, QgsFields, QgsField, QgsWkbTypes)
+from qgis.core import (Qgis,
+                       QgsCoordinateReferenceSystem,
+                       QgsFeature,
+                       QgsField,
+                       QgsFields,
+                       QgsGeometry,
+                       QgsLineString,
+                       QgsMultiLineString,
+                       QgsMultiPolygon,
+                       QgsPointXY,
+                       QgsPolygon,
+                       QgsProject,
+                       QgsRasterLayer,
+                       QgsWkbTypes)
 
-from qgis.core import (
-    QgsProcessingAlgorithm,
-    QgsProcessingParameterRasterLayer,
-    QgsProcessingParameterNumber,
-    QgsProcessingException,
-    QgsProcessingParameterFileDestination)
+from qgis.core import (QgsProcessingAlgorithm,
+                       QgsProcessingParameterDefinition,
+                       QgsProcessingParameterFileDestination,
+                       QgsProcessingParameterNumber,
+                       QgsProcessingParameterRasterLayer,
+                       QgsProcessingParameterString)
 
 from zipfile import ZipFile
 import xml.sax
@@ -49,6 +59,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
     PrmEastLongitude = 'EastLongitude'
     PrmWestLongitude = 'WestLongitude'
     PrmRotation      = 'Rotation'
+    PrmCreationOptions = 'CreationOptions'
 
     def initAlgorithm(self, config):
         self.addParameter(
@@ -101,6 +112,19 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         param.setMetadata({'widget_wrapper': { 'decimals': 14 }})
         self.addParameter(param)
 
+        options_param = QgsProcessingParameterString(self.PrmCreationOptions,
+                                                     tr('Additional creation options'),
+                                                     defaultValue='',
+                                                     optional=True)
+        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        if Qgis.versionInt() >= 33900:
+            options_param.setMetadata({'widget_wrapper': {'widget_type': 'rasteroptions'}})
+        else:
+            options_param.setMetadata({
+                'widget_wrapper': {
+                    'class': 'processing.algs.gdal.ui.RasterOptionsWidget.RasterOptionsWidgetWrapper'}})
+        self.addParameter(options_param)
+
         param=QgsProcessingParameterFileDestination(
             self.PrmOutputRaster,
             tr('Output GeoTIFF Image'),
@@ -116,11 +140,13 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         east = self.parameterAsDouble(parameters, self.PrmEastLongitude, context)
         west = self.parameterAsDouble(parameters, self.PrmWestLongitude, context)
         rotation = self.parameterAsDouble(parameters, self.PrmRotation, context)
+        creation_options = self.parameterAsString(parameters, self.PrmCreationOptions, context)
 
         if rotation == 0:
             status = processing.run("gdal:translate", {'INPUT': raster,
                     'EXTRA': '-a_srs EPSG:4326 -a_ullr {} {} {} {}'.format(west, north, east, south),
                     'DATA_TYPE': 0,
+                    'OPTIONS': creation_options,
                     'OUTPUT': out_path})
         else:
             rwidth = raster.width()
@@ -150,6 +176,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
             status = processing.run("gdal:translate", {'INPUT': raster,
                     'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
                     'DATA_TYPE': 0,
+                    'OPTIONS': creation_options,
                     'OUTPUT': out_path})
         feedback.pushInfo('{}'.format(status))
         results = {}
