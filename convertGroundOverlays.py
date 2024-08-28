@@ -184,6 +184,8 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
             # Make sure the name is unique so the images are not overwritten
             file_name = self.uniqueName(file_name)
             out_path = os.path.join(out_folder, file_name+".tif")
+            rwidth = raster.width()
+            rheight = raster.height()
             if groundOverlayType == "LatLonBox":
                 if rotation == 0:
                     status = processing.run("gdal:translate", {'INPUT': raster,
@@ -192,8 +194,6 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                             'OPTIONS': creation_options,
                             'OUTPUT': out_path})
                 else:
-                    rwidth = raster.width()
-                    rheight = raster.height()
                     center_x = (east + west) / 2.0
                     center_y = (north + south)/ 2.0
                     center_pt = QgsPointXY(center_x, center_y)
@@ -233,17 +233,26 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                         latLonQuad.append(c)
                 else:
                     latLonQuad = ["0", "0"] * 4
-                rwidth = raster.width()
-                rheight = raster.height()
-                gcp1= '-gcp {} {} {} {}'.format(0, 0, latLonQuad[3][0], latLonQuad[3][1])
-                gcp2= '-gcp {} {} {} {}'.format(rwidth, 0, latLonQuad[2][0], latLonQuad[2][1])
-                gcp3= '-gcp {} {} {} {}'.format(rwidth, rheight, latLonQuad[1][0], latLonQuad[1][1])
-                gcp4= '-gcp {} {} {} {}'.format(0, rheight, latLonQuad[0][0], latLonQuad[0][1])
-                status = processing.run("gdal:translate", {'INPUT': raster,
-                        'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
-                        'DATA_TYPE': 0,
-                        'OPTIONS': creation_options,
-                        'OUTPUT': out_path})
+                if (latLonQuad[0][1] == latLonQuad[1][1] and latLonQuad[2][1] == latLonQuad[3][1] and
+                    latLonQuad[0][0] == latLonQuad[3][0] and latLonQuad[1][0] == latLonQuad[2][0]):
+                    # latLonQuad is a rectangle
+                    status = processing.run("gdal:translate", {'INPUT': raster,
+                            'EXTRA': '-a_srs EPSG:4326 -a_ullr {} {} {} {}'.format(latLonQuad[3][0], latLonQuad[3][1],
+                                                                                   latLonQuad[1][0], latLonQuad[1][1]),
+                            'DATA_TYPE': 0,
+                            'OPTIONS': creation_options,
+                            'OUTPUT': out_path})
+                else:
+                    # latLonQuad is not a rectangle
+                    gcp1= '-gcp {} {} {} {}'.format(0, 0, latLonQuad[3][0], latLonQuad[3][1])
+                    gcp2= '-gcp {} {} {} {}'.format(rwidth, 0, latLonQuad[2][0], latLonQuad[2][1])
+                    gcp3= '-gcp {} {} {} {}'.format(rwidth, rheight, latLonQuad[1][0], latLonQuad[1][1])
+                    gcp4= '-gcp {} {} {} {}'.format(0, rheight, latLonQuad[0][0], latLonQuad[0][1])
+                    status = processing.run("gdal:translate", {'INPUT': raster,
+                            'EXTRA': '-a_srs EPSG:4326 -a_nodata 0,0,0 {} {} {} {}'.format(gcp1, gcp2, gcp3, gcp4),
+                            'DATA_TYPE': 0,
+                            'OPTIONS': creation_options,
+                            'OUTPUT': out_path})
 
             if load_geotiffs:
                 context.addLayerToLoadOnCompletion(
