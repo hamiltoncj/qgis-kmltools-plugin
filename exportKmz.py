@@ -89,6 +89,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
     PrmPhotoField = 'PhotoField'
     PrmPhotoDir = 'PhotoDir'
     PrmUseDescBR = 'UseDescBR'
+    PrmTessellate = 'Tessellate'
     epsg4326 = QgsCoordinateReferenceSystem("EPSG:4326")
     temp_dir = tempfile.gettempdir()
 
@@ -176,6 +177,13 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 'Default altitude mode when not obtained from the attribute table',
                 options=ALTITUDE_MODES,
                 defaultValue=0,
+                optional=True)
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.PrmTessellate,
+                'Enable tessellation in clampToGround mode',
+                True,
                 optional=True)
         )
         self.addParameter(
@@ -383,6 +391,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         altitude_field = self.parameterAsString(parameters, self.PrmAltitudeField, context)
         altitude_addend = self.parameterAsDouble(parameters, self.PrmAltitudeAddend, context)
         extend_sides_to_ground = self.parameterAsInt(parameters, self.PrmExtendSidesToGround, context)
+        tessellate = self.parameterAsInt(parameters, self.PrmTessellate, context)
         date_time_stamp_field = self.parameterAsString(parameters, self.PrmDateTimeStampField, context)
         date_stamp_field = self.parameterAsString(parameters, self.PrmDateStampField, context)
         time_stamp_field = self.parameterAsString(parameters, self.PrmTimeStampField, context)
@@ -505,7 +514,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
             if geomtype == QgsWkbTypes.PointGeometry:  # POINTS
                 for pt in geom.parts():
                     kmlpart = kmlgeom.newpoint()
-                    self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground)
+                    self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground, 0)
                     if kml_item is None:
                         kml_item = kmlpart
                     if hasz:
@@ -517,7 +526,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 for part in geom.parts():
                     # feedback.pushInfo('part type {}'.format(type(part)))
                     kmlpart = kmlgeom.newlinestring()
-                    self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground)
+                    self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground, tessellate)
                     if kml_item is None:
                         kml_item = kmlpart
                     if hasz:
@@ -535,7 +544,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
 
                 for part in geom.parts():
                     kmlpart = kmlgeom.newpolygon()
-                    self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground)
+                    self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground, tessellate)
                     if kml_item is None:
                         kml_item = kmlpart
                     num_interior_rings = part.numInteriorRings()
@@ -939,7 +948,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         str = '\n'.join(strs)
         kml_item.description = str
 
-    def setAltitudeMode(self, kml_item, f, alt_mode, mode_field, extend_sides_to_ground):
+    def setAltitudeMode(self, kml_item, f, alt_mode, mode_field, extend_sides_to_ground, tessellate):
         try:
             mode = None
             if extend_sides_to_ground:
@@ -948,9 +957,13 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 mode = f[mode_field]
             if mode not in ALTITUDE_MODES and alt_mode:
                 kml_item.altitudemode = alt_mode
+                if tessellate and (alt_mode == 'clampToGround'):
+                    kml_item.tessellate = 1
                 return
             if mode in ALTITUDE_MODES:
                 kml_item.altitudemode = mode
+                if tessellate and (mode == 'clampToGround'):
+                    kml_item.tessellate = 1
         except Exception:
             return
 

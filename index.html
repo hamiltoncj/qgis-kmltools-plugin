@@ -56,21 +56,18 @@ code {
         &lt;tr&gt;&lt;td&gt;State&lt;/td&gt;&lt;td&gt;Utah&lt;/td&gt;&lt;/tr&gt;
     &lt;/table&gt;
 </code></pre>
-
 <ul>
 <li><strong><em>Expand from "tag = value" pairs</em></strong> - If the KML has a description entry that contains "tag = value" entries separated by new paragraphs, line breaks, or entries in a single table column, then this option will parse these fields and add them to a new attribute table field. This is an example of data that it expands.</li>
 </ul>
 <pre><code>    &lt;b&gt;City&lt;b/&gt; = Provo&lt;br/&gt;
     &lt;b&gt;State&lt;b/&gt; = Utah&lt;br/&gt;
 </code></pre>
-
 <ul>
 <li><strong><em>Expand from "tag: value" pairs</em></strong> - If the KML has a description entry that contains "tag: value" entries separated by new paragraphs, line breaks, or entries in a single table column, then this option will parse these fields and add them to a new attribute table field. This is an example of data that it expands.</li>
 </ul>
 <pre><code>    &lt;b&gt;City:&lt;b/&gt; Provo&lt;br/&gt;
     &lt;b&gt;State:&lt;b/&gt; Utah&lt;br/&gt;
 </code></pre>
-
 <p>This can either be run from the menu, tool bar, or <em>Processing Toolbox</em>; however, running it from the menu or tool bar provides user interaction during the conversion to select which fields they want to expand. During expansion some of the expansion names may already exist in the table. If that is the case then an '_' followed by a number is appended to the end.</p>
 <div style="text-align:center"><img src="doc/html.jpg" alt="HTML Expander"></div>
 
@@ -94,6 +91,7 @@ code {
 <li><strong><em>Point layers: Use the following Google icon, but use QGIS icon color and size</em></strong> - Rather than display the QGIS icon shape, you can select one of the Google Earth icon shapes to be displayed for point features. The size and color of the icon will be determined by QGIS.</li>
 <li><strong><em>Specify whether to include altitude in the KMZ</em></strong> - If altitude is available in the QGIS geometry as a Z attribute or is available in the attribute table, then it can be included in the KMZ. Note that the altitude value must be in <strong>meters</strong>; otherwise, it will not be displayed correctly. The KML Altitude Mode also affects how altitude is interpreted.</li>
 <li><strong><em>Default altitude mode when not obtained from the attribute table</em></strong> - When altitude is not obtained from a field in the attribute table, then this value is used.</li>
+<li><strong><em>Enable tessellation in clampToGround mode</em></strong> - This enables tessellation and specifies whether to allow LinearRings to follow the terrain. This is only applicable when the altitude mode is clampToGround. Very large LinearRings should enable tessellation so that they follow the curvature of the earth without going underground and becoming  invisible.</li>
 <li><strong><em>Altitude mode field</em></strong> - Specify a field in the attribute table to be used as the altitude mode.</li>
 <li><strong><em>Altitude field</em></strong> - Specify a field in the attribute table to be used as the altitude. This value must be in meters.</li>
 <li><strong><em>Altitude addend</em></strong> - Specify a quantity to be used as addend for altitude (from Altitude field or Z attribute). This value must be in meters.</li>
@@ -110,7 +108,8 @@ code {
 <li><strong><em>Line width multiplication factor</em></strong> - Line widths in Google Earth visually appear smaller than in QGIS so this provides a method to make them look similar. By default this is set to 2.</li>
 <li><strong><em>Select field to create categorized KML subfolders</em></strong> - You can select an attribute to create categorized folders in the output KML. This is an example of National Parks layer exporated as a KML and displayed in Google Earth. You can see the National Parks categorized by their type.</li>
 </ul>
-<p><div style="text-align:center"><img src="doc/categorized_folders.jpg" alt="Advanced parameters"></div></p>
+<div style="text-align:center"><img src="doc/categorized_folders.jpg" alt="Advanced parameters"></div>
+
 <ul>
 <li>The rest of the advanced parameters allow the use of separate date and time fields to be combined into a single KML time stamp, time span begin, or time span end field.</li>
 </ul>
@@ -135,4 +134,5 @@ code {
 <p>The parameters are the input KML or KMZ and the location of a folder to store the images in. You can also specify whether to automatically load the converted GeoTIFF images into QGIS or not. If any images are found that cannot be converted, they will be reported in the algorithm log. If rotation is involved in the conversion process, the output GeoTIFFs are compatible with QGIS, but may not be compatible with other programs. If needed, run these images through <strong><em>GDAL-&gt;Raster projections-&gt;Warp</em></strong> to make them compatible with other programs.</p>
 <h3><img src="icons/gnd_overlay.svg" alt="Ground Overlay to GeoTIFF Image"> <strong><em>Ground Overlay to GeoTIFF Image</em></strong></h3>
 <p>This algorithm manually allows the user to specify an image and enter the north, south, east, west and rotation parameters to convert the input image into a GeoTIFF image. If rotation is not zero, the output GeoTiff is compatible with QGIS, but may not be compatible with other programs. If needed, run the output of this algorithm through <strong><em>GDAL-&gt;Raster projections-&gt;Warp</em></strong> to make it compatible with other programs.</p>
-<div style="text-align:center"><img src="doc/gndoverlay2tiff.jpg" alt="Ground Overlay to GeoTIFF"></div></body>
+<div style="text-align:center"><img src="doc/gndoverlay2tiff.jpg" alt="Ground Overlay to GeoTIFF"></div>
+</body>
