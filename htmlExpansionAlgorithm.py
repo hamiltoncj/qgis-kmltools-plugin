@@ -46,7 +46,7 @@ class HTMLExpansionAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.PrmInputLayer,
                 tr('Input layer'),
-                [QgsProcessing.TypeVector])
+                [QgsProcessing.SourceType.TypeVector])
         )
         self.addParameter(
             QgsProcessingParameterField(
@@ -54,7 +54,7 @@ class HTMLExpansionAlgorithm(QgsProcessingAlgorithm):
                 tr('Description field'),
                 defaultValue='description',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.String
+                type=QgsProcessingParameterField.DataType.String
             )
         )
         self.addParameter(

@@ -70,7 +70,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         param = QgsProcessingParameterNumber(
             self.PrmNorthLatitude,
             tr('North latitude'),
-            QgsProcessingParameterNumber.Double,
+            QgsProcessingParameterNumber.Type.Double,
             defaultValue=0,
             optional=False)
         param.setMetadata({'widget_wrapper': { 'decimals': 14 }})
@@ -79,7 +79,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         param = QgsProcessingParameterNumber(
             self.PrmSouthLatitude,
             tr('South latitude'),
-            QgsProcessingParameterNumber.Double,
+            QgsProcessingParameterNumber.Type.Double,
             defaultValue=0,
             optional=False)
         param.setMetadata({'widget_wrapper': { 'decimals': 14 }})
@@ -88,7 +88,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         param = QgsProcessingParameterNumber(
             self.PrmEastLongitude,
             tr('East longitude'),
-            QgsProcessingParameterNumber.Double,
+            QgsProcessingParameterNumber.Type.Double,
             defaultValue=0,
             optional=False)
         param.setMetadata({'widget_wrapper': { 'decimals': 14 }})
@@ -97,7 +97,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         param = QgsProcessingParameterNumber(
             self.PrmWestLongitude,
             tr('West longitude'),
-            QgsProcessingParameterNumber.Double,
+            QgsProcessingParameterNumber.Type.Double,
             defaultValue=0,
             optional=False)
         param.setMetadata({'widget_wrapper': { 'decimals': 14 }})
@@ -106,7 +106,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         param = QgsProcessingParameterNumber(
             self.PrmRotation,
             tr('Rotation'),
-            QgsProcessingParameterNumber.Double,
+            QgsProcessingParameterNumber.Type.Double,
             defaultValue=0,
             optional=False)
         param.setMetadata({'widget_wrapper': { 'decimals': 14 }})
@@ -116,7 +116,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
                                                      tr('Additional creation options'),
                                                      defaultValue='',
                                                      optional=True)
-        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         if Qgis.versionInt() >= 33900:
             options_param.setMetadata({'widget_wrapper': {'widget_type': 'rasteroptions'}})
         else:
@@ -202,7 +202,7 @@ class CreateGroundOverlayGeoTiffAlgorithm(QgsProcessingAlgorithm):
         file = os.path.dirname(__file__) + '/index.html'
         if not os.path.exists(file):
             return ''
-        return QUrl.fromLocalFile(file).toString(QUrl.FullyEncoded)
+        return QUrl.fromLocalFile(file).toString(QUrl.ComponentFormattingOption.FullyEncoded)
 
     def shortHelpString(self):
         file = os.path.dirname(__file__) + '/doc/gndoverlay2tiff.help'
