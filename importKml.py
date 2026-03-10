@@ -199,7 +199,7 @@ class ImportKmlAlgorithm(QgsProcessingAlgorithm):
             (self.sinkPt, self.dest_id_pt) = self.parameterAsSink(
                 self.parameters,
                 self.PrmPointOutputLayer, self.context, f,
-                QgsWkbTypes.PointZ, epsg4326)
+                QgsWkbTypes.Type.PointZ, epsg4326)
 
         self.cntPt += 1
         self.sinkPt.addFeature(feature)
@@ -220,7 +220,7 @@ class ImportKmlAlgorithm(QgsProcessingAlgorithm):
             (self.sinkLine, self.dest_id_line) = self.parameterAsSink(
                 self.parameters,
                 self.PrmLineOutputLayer, self.context, f,
-                QgsWkbTypes.MultiLineStringZ, epsg4326)
+                QgsWkbTypes.Type.MultiLineStringZ, epsg4326)
 
         self.cntLine += 1
         self.sinkLine.addFeature(feature)
@@ -241,7 +241,7 @@ class ImportKmlAlgorithm(QgsProcessingAlgorithm):
             (self.sinkPoly, self.dest_id_poly) = self.parameterAsSink(
                 self.parameters,
                 self.PrmPolygonOutputLayer, self.context, f,
-                QgsWkbTypes.MultiPolygonZ, epsg4326)
+                QgsWkbTypes.Type.MultiPolygonZ, epsg4326)
         self.cntPoly += 1
         self.sinkPoly.addFeature(feature)
 
@@ -264,7 +264,7 @@ class ImportKmlAlgorithm(QgsProcessingAlgorithm):
         file = os.path.dirname(__file__) + '/index.html'
         if not os.path.exists(file):
             return ''
-        return QUrl.fromLocalFile(file).toString(QUrl.FullyEncoded)
+        return QUrl.fromLocalFile(file).toString(QUrl.ComponentFormattingOption.FullyEncoded)
 
     def createInstance(self):
         return ImportKmlAlgorithm()

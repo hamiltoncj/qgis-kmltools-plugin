@@ -1,8 +1,9 @@
 [general]
 name=KML Tools
 qgisMinimumVersion=3.10.1
+qgisMaximumVersion=4.99
 description=Fast KML/KMZ importer, exporter, with description field expansion and ground overlay to GeoTIFF conversions.
-version=3.2.3
+version=3.2.4
 author=Calvin Hamilton
 email=adenaculture@gmail.com
 about=
@@ -17,6 +18,7 @@ experimental=False
 deprecated=False
 hasProcessingProvider=yes
 changelog=
+    3.2.4 - Qt5/Qt6 compatibility
     3.2.3 - Enable tessellate tag for clampToGround mode
     3.2.2 - Merge PR #5
     3.2.1 - Merge PR #3 and PR #4

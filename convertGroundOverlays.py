@@ -82,7 +82,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
                                                      tr('Additional creation options'),
                                                      defaultValue='',
                                                      optional=True)
-        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        options_param.setFlags(options_param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         if Qgis.versionInt() >= 33900:
             options_param.setMetadata({'widget_wrapper': {'widget_type': 'rasteroptions'}})
         else:
@@ -340,7 +340,7 @@ class ConvertGroundOverlayAlgorithm(QgsProcessingAlgorithm):
         file = os.path.dirname(__file__) + '/index.html'
         if not os.path.exists(file):
             return ''
-        return QUrl.fromLocalFile(file).toString(QUrl.FullyEncoded)
+        return QUrl.fromLocalFile(file).toString(QUrl.ComponentFormattingOption.FullyEncoded)
 
     def shortHelpString(self):
         file = os.path.dirname(__file__) + '/doc/extractgndoverlays.help'

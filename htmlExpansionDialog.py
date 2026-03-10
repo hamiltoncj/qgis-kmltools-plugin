@@ -35,7 +35,7 @@ class HTMLExpansionDialog(QDialog, FORM_CLASS):
         super(HTMLExpansionDialog, self).__init__(iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
-        self.inputLayerComboBox.setFilters(QgsMapLayerProxyModel.VectorLayer)
+        self.inputLayerComboBox.setFilters(QgsMapLayerProxyModel.Filter.VectorLayer)
         self.inputLayerComboBox.layerChanged.connect(self.layerChanged)
         self.typeComboBox.addItems([
             tr('Expand from a 2 column HTML table'),
@@ -59,7 +59,7 @@ class HTMLExpansionDialog(QDialog, FORM_CLASS):
         field = self.descriptionComboBox.currentField()
         index = layer.fields().indexFromName(field)
         if index == -1:
-            self.iface.messageBar().pushMessage("", "Invalid field name", level=Qgis.Warning, duration=3)
+            self.iface.messageBar().pushMessage("", "Invalid field name", level=Qgis.MessageLevel.Warning, duration=3)
             return
 
         # Set up the HTML expansion processor
@@ -71,7 +71,7 @@ class HTMLExpansionDialog(QDialog, FORM_CLASS):
         # From the expansion processor get the list of possible expansion fields
         # and show a popup of them so the user can select which he wants in the output.
         fieldsDialog = HTMLFieldSelectionDialog(self.iface, self.htmlProcessor.fields())
-        fieldsDialog.exec_()
+        fieldsDialog.exec()
         # From the users selections of expansion fields, set them in the processor.
         # This is just a list of names.
         self.htmlProcessor.setDesiredFields(fieldsDialog.selected)
@@ -138,19 +138,19 @@ class HTMLFieldSelectionDialog(QDialog, HTML_FIELDS_CLASS):
         cnt = self.model.rowCount()
         for i in range(0, cnt):
             item = self.model.item(i)
-            item.setCheckState(Qt.Checked)
+            item.setCheckState(Qt.CheckState.Checked)
 
     def clearAll(self):
         cnt = self.model.rowCount()
         for i in range(0, cnt):
             item = self.model.item(i)
-            item.setCheckState(Qt.Unchecked)
+            item.setCheckState(Qt.CheckState.Unchecked)
 
     def accept(self):
         self.selected = []
         cnt = self.model.rowCount()
         for i in range(0, cnt):
             item = self.model.item(i)
-            if item.checkState() == Qt.Checked:
+            if item.checkState() == Qt.CheckState.Checked:
                 self.selected.append(item.text())
         self.close()

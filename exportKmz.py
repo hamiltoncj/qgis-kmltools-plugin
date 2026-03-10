@@ -98,7 +98,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.PrmInputLayer,
                 'Input layer',
-                [QgsProcessing.TypeVector])
+                [QgsProcessing.SourceType.TypeVector])
         )
         self.addParameter(
             QgsProcessingParameterBoolean (
@@ -112,7 +112,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmNameField,
                 'Name/Label field',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.Any,
+                type=QgsProcessingParameterField.DataType.Any,
                 defaultValue='name',
                 optional=True
             )
@@ -130,7 +130,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                     self.PrmDescriptionField,
                     'Description fields',
                     parentLayerParameterName=self.PrmInputLayer,
-                    type=QgsProcessingParameterField.Any,
+                    type=QgsProcessingParameterField.DataType.Any,
                     optional=True,
                     allowMultiple=True,
                     defaultToAllFields=True
@@ -142,7 +142,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                     self.PrmDescriptionField,
                     'Description fields',
                     parentLayerParameterName=self.PrmInputLayer,
-                    type=QgsProcessingParameterField.Any,
+                    type=QgsProcessingParameterField.DataType.Any,
                     optional=True,
                     allowMultiple=True
                 )
@@ -191,7 +191,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmAltitudeModeField,
                 'Altitude mode field',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.String,
+                type=QgsProcessingParameterField.DataType.String,
                 defaultValue='alt_mode',
                 optional=True
             )
@@ -201,7 +201,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmAltitudeField,
                 'Altitude field (value must be in meters)',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.Any,
+                type=QgsProcessingParameterField.DataType.Any,
                 defaultValue='altitude',
                 optional=True
             )
@@ -210,7 +210,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.PrmAltitudeAddend,
                 'Altitude addend (value must be in meters)',
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 defaultValue=0,
                 optional=True
             )
@@ -227,7 +227,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmDateTimeStampField,
                 'Date/Time stamp field (see advanced parameters)',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.Any,
+                type=QgsProcessingParameterField.DataType.Any,
                 defaultValue='time_when',
                 optional=True
             )
@@ -237,7 +237,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmDateTimeBeginField,
                 'Date/Time span begin field (see advanced parameters)',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.Any,
+                type=QgsProcessingParameterField.DataType.Any,
                 defaultValue='time_begin',
                 optional=True
             )
@@ -247,7 +247,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmDateTimeEndField,
                 'Date/Time span end field (see advanced parameters)',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.Any,
+                type=QgsProcessingParameterField.DataType.Any,
                 defaultValue='time_end',
                 optional=True
             )
@@ -257,7 +257,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 self.PrmPhotoField,
                 'Image path/name field',
                 parentLayerParameterName=self.PrmInputLayer,
-                type=QgsProcessingParameterField.String,
+                type=QgsProcessingParameterField.DataType.String,
                 optional=True
             )
         )
@@ -271,81 +271,81 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         param = QgsProcessingParameterNumber(
             self.PrmLineWidthFactor,
             'Line width multiplication factor (widths appear smaller in Google Earth)',
-            QgsProcessingParameterNumber.Double,
+            QgsProcessingParameterNumber.Type.Double,
             defaultValue=2,
             minValue=0,
             optional=True)
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmSubFolderField,
             'Field to create categorized KML subfolders',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterBoolean(
                 self.PrmUseDescBR,
                 'Add line breaks within description fields',
                 True,
                 optional=True)
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmDateStampField,
             'Date stamp field',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmTimeStampField,
             'Time stamp field',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmDateBeginField,
             'Date span begin field',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmTimeBeginField,
             'Time span begin field',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmDateEndField,
             'Date span end field',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
         param = QgsProcessingParameterField(
             self.PrmTimeEndField,
             'Time span end field',
             parentLayerParameterName=self.PrmInputLayer,
-            type=QgsProcessingParameterField.Any,
+            type=QgsProcessingParameterField.DataType.Any,
             optional=True
         )
-        param.setFlags(param.flags() | QgsProcessingParameterDefinition.FlagAdvanced)
+        param.setFlags(param.flags() | QgsProcessingParameterDefinition.Flag.FlagAdvanced)
         self.addParameter(param)
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -363,7 +363,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         wkbtype = layer.wkbType()
         self.layer_opacity = layer.opacity()
         geomtype = QgsWkbTypes.geometryType(wkbtype)
-        if geomtype == QgsWkbTypes.UnknownGeometry or geomtype == QgsWkbTypes.NullGeometry:
+        if geomtype == QgsWkbTypes.GeometryType.UnknownGeometry or geomtype == QgsWkbTypes.GeometryType.NullGeometry:
             raise QgsProcessingException('Algorithm input is not a valid point, line, or polygon layer.')
         if self.PrmNameField not in parameters or parameters[self.PrmNameField] is None:
             name_field = None
@@ -505,13 +505,13 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 if current_category != last_category:
                     last_category = current_category
                     folder = basefolder.newfolder(name=current_category)
-            if geom.isMultipart() or (name_field and geomtype == QgsWkbTypes.PolygonGeometry and poly_hidden_point_label):
+            if geom.isMultipart() or (name_field and geomtype == QgsWkbTypes.GeometryType.PolygonGeometry and poly_hidden_point_label):
                 kmlgeom = folder.newmultigeometry()
                 kml_item = kmlgeom
             else:
                 kmlgeom = folder
                 kml_item = None
-            if geomtype == QgsWkbTypes.PointGeometry:  # POINTS
+            if geomtype == QgsWkbTypes.GeometryType.PointGeometry:  # POINTS
                 for pt in geom.parts():
                     kmlpart = kmlgeom.newpoint()
                     self.setAltitudeMode(kmlpart, feature, default_alt_mode, alt_mode_field, extend_sides_to_ground, 0)
@@ -521,7 +521,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                         kmlpart.coords = [(pt.x(), pt.y(), pt.z() + altitude_addend)]
                     else:
                         kmlpart.coords = [(pt.x(), pt.y(), altitude + altitude_addend)]
-            elif geomtype == QgsWkbTypes.LineGeometry:  # LINES
+            elif geomtype == QgsWkbTypes.GeometryType.LineGeometry:  # LINES
                 # feedback.pushInfo('geomtype {}'.format(geomtype))
                 for part in geom.parts():
                     # feedback.pushInfo('part type {}'.format(type(part)))
@@ -533,7 +533,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                         kmlpart.coords = [(pt.x(), pt.y(), pt.z() + altitude_addend) for pt in part]
                     else:
                         kmlpart.coords = [(pt.x(), pt.y(), altitude + altitude_addend) for pt in part]
-            elif geomtype == QgsWkbTypes.PolygonGeometry:  # POLYGONS
+            elif geomtype == QgsWkbTypes.GeometryType.PolygonGeometry:  # POLYGONS
                 if name_field and poly_hidden_point_label:
                     try:
                         centroid = geom.centroid().asPoint()
@@ -674,10 +674,10 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
             # For lines and polygons we would use the color and line sizes
             symbol = rng.symbol()
             opacity = symbol.opacity() * self.layer_opacity
-            if geomtype == QgsWkbTypes.PointGeometry:
+            if geomtype == QgsWkbTypes.GeometryType.PointGeometry:
                 sym_size = symbol.size(self.symcontext)
                 color = qcolor2kmlcolor(symbol.color())
-            elif geomtype == QgsWkbTypes.LineGeometry:
+            elif geomtype == QgsWkbTypes.GeometryType.LineGeometry:
                 sym_size = symbol.width()
                 if sym_size == 0:
                     sym_size = 0.5
@@ -706,7 +706,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
             symbol = self.render.symbol()
             opacity = symbol.opacity() * self.layer_opacity
             self.simple_style = simplekml.Style()
-            if geomtype == QgsWkbTypes.PointGeometry:
+            if geomtype == QgsWkbTypes.GeometryType.PointGeometry:
                 sym_size = symbol.size(self.symcontext)
                 if google_icon is None:
                     bounds = symbol.bounds(QPointF(0, 0), self.symcontext)
@@ -727,7 +727,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                     self.simple_style.iconstyle.color = qcolor2kmlcolor(symbol.color())
                 # When extruding the lines, the sets the extruded line color to that of the icon color
                 self.simple_style.linestyle.color = qcolor2kmlcolor(symbol.color())
-            elif geomtype == QgsWkbTypes.LineGeometry:
+            elif geomtype == QgsWkbTypes.GeometryType.LineGeometry:
                 symbol_width = symbol.width()
                 # self.feedback.pushInfo('symbol_width: {}'.format(symbol_width))
                 if symbol_width == 0:
@@ -778,7 +778,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 opacity = symbol.opacity() * self.layer_opacity
                 # self.feedback.pushInfo('symbol opacity: {}'.format(opacity))
                 # self.feedback.pushInfo('categories idx: {}'.format(idx))
-                if geomtype == QgsWkbTypes.PointGeometry:
+                if geomtype == QgsWkbTypes.GeometryType.PointGeometry:
                     # self.feedback.pushInfo('  PointGeometry')
                     sym_size = symbol.size(self.symcontext)
                     # self.feedback.pushInfo('sym_size: {}'.format(sym_size))
@@ -802,7 +802,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                         cat_style.iconstyle.color = qcolor2kmlcolor(symbol.color())
                     # When extruding the lines, the sets the extruded line color to that of the icon color
                     cat_style.linestyle.color = qcolor2kmlcolor(symbol.color())
-                elif geomtype == QgsWkbTypes.LineGeometry:
+                elif geomtype == QgsWkbTypes.GeometryType.LineGeometry:
                     # self.feedback.pushInfo('  LineGeometry')
                     symbol_width = symbol.width()
                     # self.feedback.pushInfo('symbol width: {}'.format(symbol.width()))
@@ -836,7 +836,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                 symbol = rng.symbol()
                 opacity = symbol.opacity() * self.layer_opacity
                 # self.feedback.pushInfo(' categories idx: {}'.format(idx))
-                if geomtype == QgsWkbTypes.PointGeometry:
+                if geomtype == QgsWkbTypes.GeometryType.PointGeometry:
                     # self.feedback.pushInfo('  PointGeometry')
                     sym_size = symbol.size(self.symcontext)
                     color = qcolor2kmlcolor(symbol.color(), opacity)
@@ -860,7 +860,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
                         cat_style.iconstyle.color = color
                     # When extruding the lines, the sets the extruded line color to that of the icon color
                     cat_style.linestyle.color = qcolor2kmlcolor(symbol.color())
-                elif geomtype == QgsWkbTypes.LineGeometry:
+                elif geomtype == QgsWkbTypes.GeometryType.LineGeometry:
                     # self.feedback.pushInfo('  LineGeometry')
                     color = qcolor2kmlcolor(symbol.color(), opacity)
                     cat_style.linestyle.color = color
@@ -898,11 +898,11 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         if not attr:
             return( '' )
         if isinstance(attr, QDateTime):
-            attr = attr.toString(Qt.ISODate)
+            attr = attr.toString(Qt.DateFormat.ISODate)
         elif isinstance(attr, QDate):
-            attr = attr.toString(Qt.ISODate)
+            attr = attr.toString(Qt.DateFormat.ISODate)
         elif isinstance(attr, QTime):
-            attr = attr.toString(Qt.ISODate)
+            attr = attr.toString(Qt.DateFormat.ISODate)
         attr = escape('{}'.format(attr).strip())
         return(attr)
             
@@ -910,11 +910,11 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         if not fname:
             fname = ''
         elif isinstance(fname, QDateTime):
-            fname = fname.toString(Qt.ISODate)
+            fname = fname.toString(Qt.DateFormat.ISODate)
         elif isinstance(fname, QDate):
-            fname = fname.toString(Qt.ISODate)
+            fname = fname.toString(Qt.DateFormat.ISODate)
         elif isinstance(fname, QTime):
-            fname = fname.toString(Qt.ISODate)
+            fname = fname.toString(Qt.DateFormat.ISODate)
         else:
             fname = '{}'.format(fname).strip()
         kml_item.name = fname
@@ -1140,7 +1140,7 @@ class ExportKmzAlgorithm(QgsProcessingAlgorithm):
         file = os.path.dirname(__file__) + '/index.html'
         if not os.path.exists(file):
             return ''
-        return QUrl.fromLocalFile(file).toString(QUrl.FullyEncoded)
+        return QUrl.fromLocalFile(file).toString(QUrl.ComponentFormattingOption.FullyEncoded)
 
     def createInstance(self):
         return ExportKmzAlgorithm()
